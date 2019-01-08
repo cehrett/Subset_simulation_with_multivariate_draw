@@ -1,18 +1,25 @@
 function [Pf_SS,Pf,gsort,b,F_total,F_seeds,...
     theta_rec,theta_rec_u,uniques,Nf,geval] = ...
     SS(n,N,p0,B,pi_targ,pi_prop,g,gsettings,mma)
+% Subset Simulation 
 
-%% Subset Simulation 
+% Check inputs
 
 if (nargin ~= 9)
    error('Incorrect number of parameters in function "SS"');
 end
 tic;
 
+% Define logit
+logit = @(x) log(x ./ (1-x));
+
 %% Initialization of variables and storage
 j      = 1; % initial conditional level
-Nc     = N*p0; % number of markov chains
 Ns     = 1/p0; % number of samples simulated form each Markov chain
+if mod(N,Ns) ~= 0
+    N = N + Ns-mod(N,Ns) ; % Necessary to make Nc an integer
+end
+Nc     = N*p0; % number of markov chains
 est_it = 20; % estimated # of iteratns (serves as ad hoc max # of iteratns)
 theta_j  = zeros(n,N);
 geval    = zeros(1,N);
@@ -28,8 +35,8 @@ theta_rec = cell(1,1);
 theta_rec_u = cell(1,1);
 uniques  = zeros(est_it,1);
 Sigma  = 1e-1; % This is changed below before being used if mma==0
-sig_c1 = 1e1;  % These constants scale the variance and the identity 
-sig_c2 = 1e-1; % addition to it to improve convergence; 1e0,1e-8; 1e1,1e-8
+sig_c1 = 1e-1;  % These constants scale the variance and the identity 
+sig_c2 = 1e-6; % addition to it to improve convergence; 1e0,1e-8; 1e1,1e-8
                % work well for hyperellipsoid, earthquake respectively
 
 %%%% SS procedure
@@ -66,7 +73,7 @@ while last ~= 1
    % Recall mma tells whether use Au/Beck MMA algorthm or new multivar draw
    if mma == 0 
        % Get new cov matrix for proposal dist:
-       Sigma = sig_c1*(cov(F_seeds{j-1}') + sig_c2 * eye(n)); 
+       Sigma = sig_c1*(cov(logit(F_seeds{j-1})') + sig_c2 * eye(n)); 
    end
    b(j-1) = (gsort(j-1,N-Nc)+gsort(j-1,N-Nc+1))/2; % Get the p0 quantile
    fprintf('\n-Current threshold level %g is: %g \n', j-1, b(j-1));
@@ -136,11 +143,15 @@ end
 % b_line  = sort(b_line(:));
 % b_ss    = b_line;
 % Pf_SS   = p0^(j-2)*(Nf(j-1)/N);
+
 Pf_SS   = 0; % This will be our prob estimate of F
-for ii = 1:(j-1)
-   Pf_SS = Pf_SS + p0^(ii-1) * (Nf(ii)/N);
-end
-Pf_SS   = Pf_SS / (j-1);
+% % OLD VERSION:
+% for ii = 1:(j-1)
+%    Pf_SS = Pf_SS + p0^(ii-1) * (Nf(ii)/N);
+% end
+% Pf_SS   = Pf_SS / (j-1);
+% New version:
+Pf_SS = p0^(j-2) * Nf(j-1)/N ;
 
 % gvals = sort(gsort(:));
 % b_line(1,:) = linspace(min(gvals),max(gvals),1000);

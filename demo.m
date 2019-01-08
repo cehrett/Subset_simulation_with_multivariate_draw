@@ -6,11 +6,17 @@ clear; close all; clc; rng(1);
 mma      = 0 ;           % flag; set to 0 to use new multivariate draw, 
                          %%%% to 1 for Au/Beck MMA algorithm
 N        = 1000;         % Total number of samples for each level
-p0       = 0.1;          % Probability of each adaptively chosen subset
+p0       = 1/10;          % Probability of each adaptively chosen subset
 
 %%% Set performance function, and settings for it:
 g = @tpf;
-n = 1000; % Dimensionality of the hyperellipse
+% B is the threshold defining region of interest: it defines the region of
+% interest to be those points x such that g(x)>B. When g is the function
+% tpf.m, B=1 corresponds to finding points that are within the
+% hyperellipsoid with four semiprincipal axes, the jth semi-principal axis 
+% of which is of length 1/(j^2).
+B = 1;
+n = 100; % Dimensionality of the hyperellipse
 load tpfparams
 % tpfparams.mat contains two things:
 % 1. rotation_matrix - included so that the hyperellipse of which we're
@@ -24,13 +30,6 @@ load tpfparams
 % volume.
 % 2. hyperellipse_indices - this tells which of the n dimensions are the
 % semiprincipal axes of the (unrotated, axis-aligned) hyperellipse.
-
-%%% Set threshold defining region of interest: this defines the region of
-% interest to be those points x such that g(x)>B. When g is the function
-% tpf.m, B=1 corresponds to finding points that are within the
-% hyperellipsoid with four semiprincipal axes, the jth semi-principal axis 
-% of which is of length 1/(j^2*sqrt(2.314).
-B = 1;
 
 %%% Proposal and target distributions
 pi_targ = @() rand(n,1); % Prior distribution
@@ -49,3 +48,7 @@ end
     SS(n,N,p0,B,pi_targ,pi_prop,g,gsettings,mma);
 fprintf('\n***SubSim Pf: %g ***\n', Pf_SS);
 
+% Pf_SS is the estimated probability of the failure region. When g is the
+% function tpf.m and B is 1 with the rotation defined in tpfparams, the
+% true value here is approximately  1.5e-3. The estimate Pf_SS will vary
+% around this value.

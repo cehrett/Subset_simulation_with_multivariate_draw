@@ -16,7 +16,8 @@ if mma==1 % mma tells whether use Au/Beck MMA algorthm or new multivar draw
     for k = 1:n % We loop through each element of theta
        hat_xi(k) = pi_prop(theta_i(k),Sigma); % Propose new theta_i(k)
        % Get likelihood ratio: must use MH since we using truncated normals
-       lhr_num = (normcdf(1-theta_i(k))-normcdf(-theta_i(k)) ) * (hat_xi(k)<1) * (hat_xi(k)>0);
+       lhr_num = (normcdf(1-theta_i(k))-normcdf(-theta_i(k)) ) * ...
+           (hat_xi(k)<1) * (hat_xi(k)>0);
        lhr_den = normcdf(1-hat_xi(k)) - normcdf(-hat_xi(k));
        r = lhr_num/lhr_den;
        
