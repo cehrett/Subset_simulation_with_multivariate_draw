@@ -10,18 +10,22 @@ By contrast, subset simulation uses a series of intermediate failure regions, fi
 
 Here I adapt SS to perform well with inputs that are correlated with respect to the failure region. That is, SS typically draws the model inputs when performing each MCMC using independent proposal densities. When the failure region F is spherical, this works well. But when F is not spherical, the inputs are correlated with respect to the failure region, and we can use the correlation observed in the intermediate failure regions to improve the proposal density of the model inputs and thereby massively improve the efficiency of the algorithm.
 
+For full background, mathematical details, and results (both in the example case demonstrated in demo.m and in an application predicting power plant downtime following seismic events), please see the [included report](subset_simulation.pdf).
+
 ## Files
-[demo.m] is a MATLAB script which demonstrates the proposed methodology and "stock" SS, using the example computer model tpf.m.
+[demo.m](demo.m) is a MATLAB script which demonstrates the proposed methodology and "stock" SS, using the example computer model tpf.m.
 
-[tpf.m] is an example performance function to demonstrate SS. What tpf does is to find the inverse distance of a point from the origin, scaled using a hyperellipse. Different dimensionalities of inputs can be used, but by default demo.m uses a 100-dimensional input space of which four dimensions form the hyperellipse. So the set of points such that tpf returns a value greater than (e.g.) 1 is the set of points inside a shape which is a hyperellipse in four dimensions and which fills the unit hypercube in the remaining 96 dimensions. The only important point here is that having a tpf score above 1 means that you are inside a certain subregion of the unit hypercube, and the volume of that region is difficult to estimate via Monte Carlo because it is so small. Subset simulation can be used to estimate its volume.
+[tpf.m](tpf.m) is an example performance function to demonstrate SS. What tpf does is to find the inverse distance of a point from the origin, scaled using a hyperellipse. Different dimensionalities of inputs can be used, but by default demo.m uses a 100-dimensional input space of which four dimensions form the hyperellipse. So the set of points such that tpf returns a value greater than (e.g.) 1 is the set of points inside a shape which is a hyperellipse in four dimensions and which fills the unit hypercube in the remaining 96 dimensions. The only important point here is that having a tpf score above 1 means that you are inside a certain subregion of the unit hypercube, and the volume of that region is difficult to estimate via Monte Carlo because it is so small. Subset simulation can be used to estimate its volume.
 
-[tpfparams.mat] contains settings used by the example performance function tpf.m.
+[tpfparams.mat](tpfparams.mat) contains settings used by the example performance function tpf.m.
 
-[rot.m] is a script that produces a random rotation matrix of any desired dimension; it was used to produce tpfparams.mat.
+[rot.m](rot.m) is a script that produces a random rotation matrix of any desired dimension; it was used to produce tpfparams.mat.
 
-[SS.m] performs subset simulation. To do so, it also calls MAS.m.
+[SS.m](SS.m) performs subset simulation. To do so, it also calls MAS.m.
 
-[MAS.m] performs the Metropolis-Hastings sampling for the MCMC in each intermediate failure region.
+[MAS.m](MAS.m) performs the Metropolis-Hastings sampling for the MCMC in each intermediate failure region.
+
+[subset_simulation.pdf](subset_simulation.pdf) This report describes in detail subset simulation, the proposed alteration of subset simulation, and the results achieved thereby.
 
 ## To use this software
 
