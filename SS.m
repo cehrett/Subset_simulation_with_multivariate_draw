@@ -1,17 +1,25 @@
 function [Pf_SS,Pf,gsort,b,F_total,F_seeds,...
     theta_rec,theta_rec_u,uniques,Nf,geval] = ...
-    SS(n,N,p0,B,pi_targ,pi_prop,g,gsettings,mma)
+    SS(n,N,p0,B,g,gsettings,mma)
 % Subset Simulation 
 
-% Check inputs
+%% Check inputs
 
-if (nargin ~= 9)
+if (nargin ~= 7)
    error('Incorrect number of parameters in function "SS"');
 end
 tic;
 
-% Define logit
-logit = @(x) log(x ./ (1-x));
+%%% Proposal and target distributions
+pi_targ = @() rand(n,1); % Prior distribution
+if mma == 1 % Recall mma tells whether use Au/Beck MMA or 
+            % new multivar draw w/ logit transform
+    pi_prop = @(x,Sigma) (Sigma * normrnd(0,1) + x) ;
+else
+    logit_trans = @(x) log(x ./ (1-x));
+    logit_rev_trans = @(x) exp(x) ./ (1+exp(x));
+    pi_prop = @(x,Sigma) logit_rev_trans(mvnrnd(logit_trans(x),Sigma));
+end
 
 %% Initialization of variables and storage
 j      = 1; % initial conditional level
@@ -62,7 +70,7 @@ fprintf('\nInitial MCS complete! Nf(1)=%g\n',Nf(1));
 last = 0; % This indicator will turn to 1 when we're on final loop
 while last ~= 1
    if Nf(j)/N >= p0
-      last = 1    % need one more run to compute the curve
+      last = 1;    % need one more run to compute the curve
    end   
    j = j+1;   % next level
    
@@ -73,7 +81,7 @@ while last ~= 1
    % Recall mma tells whether use Au/Beck MMA algorthm or new multivar draw
    if mma == 0 
        % Get new cov matrix for proposal dist:
-       Sigma = sig_c1*(cov(logit(F_seeds{j-1})') + sig_c2 * eye(n)); 
+       Sigma = sig_c1*(cov(logit_trans(F_seeds{j-1})') + sig_c2 * eye(n)); 
    end
    b(j-1) = (gsort(j-1,N-Nc)+gsort(j-1,N-Nc+1))/2; % Get the p0 quantile
    fprintf('\n-Current threshold level %g is: %g \n', j-1, b(j-1));
